@@ -23,6 +23,23 @@
   ],
   "author": "DevOps Tribune Platform Engineering",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devopstribune/dt.git"
+  },
+  "homepage": "https://www.devopstribune.com",
+  "bugs": {
+    "url": "https://github.com/devopstribune/dt/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=18.0.0"
   }
