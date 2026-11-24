@@ -122,6 +122,46 @@ test('CLI: dt passgen top-level alias generates alphanumeric password', () => {
   assert.ok(/^[A-Za-z0-9]+$/.test(data.password));
 });
 
+test('CLI: dt tool chmod parses octal permission and security risk', () => {
+  const res = runDt('tool chmod 755 --json');
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.equal(data.octal, '755');
+  assert.equal(data.symbolic, 'rwxr-xr-x');
+  assert.equal(data.user.symbolic, 'rwx');
+  assert.equal(data.securityRisk, 'Normal');
+});
+
+test('CLI: dt tool epoch converts Unix timestamps and relative time', () => {
+  const res = runDt('tool epoch 1795507200 --json');
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.equal(data.epochSeconds, 1795507200);
+  assert.equal(data.isoUtc, '2026-11-24T08:00:00.000Z');
+  assert.ok(typeof data.relativeTime === 'string');
+});
+
+test('CLI: dt tool hash computes sha256 checksum', () => {
+  const res = runDt('tool hash sha256 "devopstribune" --json');
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.equal(data.algorithm, 'SHA256');
+  assert.equal(typeof data.hashHex, 'string');
+  assert.equal(data.hashHex.length, 64);
+});
+
+test('CLI: dt cert inspects certificate file', () => {
+  const fixturePath = path.resolve(__dirname, 'fixtures/sample-cert.pem');
+  const res = runDt(`cert "${fixturePath}" --json`);
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.equal(data.source, 'file');
+  assert.ok(data.subject.includes('test.devopstribune.com'));
+  assert.ok(data.issuer.includes('DevOps Tribune'));
+  assert.ok(data.daysRemaining >= 360);
+  assert.equal(data.status, 'HEALTHY');
+});
+
 test('CLI: dt status reports edge status', () => {
   const res = runDt('status --json');
   assert.equal(res.exitCode, 0);

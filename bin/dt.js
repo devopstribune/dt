@@ -88,6 +88,44 @@ async function main() {
       await handleTools('passgen', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
       break;
 
+    case 'cert':
+    case 'ssl':
+    case 'tls':
+      await handleTools('cert', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'chmod':
+    case 'permissions':
+      await handleTools('chmod', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'epoch':
+    case 'timestamp':
+    case 'time':
+      await handleTools('epoch', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'cidr':
+    case 'subnet':
+      await handleTools('cidr', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'cron':
+      await handleTools('cron', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'jwt':
+      await handleTools('jwt', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'base64':
+      await handleTools('base64', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
+    case 'hash':
+      await handleTools('hash', { ...args, _subArgs: [args.subCommand, ...args._subArgs].filter(Boolean) });
+      break;
+
     case 'status':
     case 'info':
       await handleStatus(args);
