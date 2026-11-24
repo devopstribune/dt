@@ -1,6 +1,6 @@
 {
   "name": "@devopstribune/cli",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Official DevOps Tribune CLI (dt) — Developer-first DevOps, Cloud, SRE terminal companion",
   "main": "bin/dt.js",
   "bin": {
