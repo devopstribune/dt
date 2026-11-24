@@ -1,0 +1,29 @@
+{
+  "name": "@devopstribune/cli",
+  "version": "1.0.0",
+  "description": "Official DevOps Tribune CLI (dt) — Developer-first DevOps, Cloud, SRE terminal companion",
+  "main": "bin/dt.js",
+  "bin": {
+    "dt": "bin/dt.js",
+    "devopstribune": "bin/dt.js"
+  },
+  "scripts": {
+    "test": "node --test test/cli.test.js",
+    "start": "node bin/dt.js"
+  },
+  "keywords": [
+    "devops",
+    "sre",
+    "cli",
+    "kubernetes",
+    "cloud",
+    "terraform",
+    "news",
+    "interview"
+  ],
+  "author": "DevOps Tribune Platform Engineering",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
