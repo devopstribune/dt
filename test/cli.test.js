@@ -210,3 +210,46 @@ test('CLI: dt command supports --no-update flag', () => {
   assert.equal(res.exitCode, 0);
   assert.ok(res.stdout.includes('RANDOM PASSWORD GENERATOR'));
 });
+
+test('Monitor: formatBytes formats byte sizes accurately', () => {
+  const { formatBytes } = require('../lib/commands/monitor');
+  assert.equal(formatBytes(0), '0 B');
+  assert.equal(formatBytes(1024), '1 KB');
+  assert.equal(formatBytes(1024 * 1024 * 5), '5 MB');
+  assert.equal(formatBytes(1024 * 1024 * 1024 * 16), '16 GB');
+});
+
+test('CLI: dt sys --json returns system resources, disk, memory, cpu, and top processes', () => {
+  const res = runDt('sys --json');
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.ok(data.hostname);
+  assert.ok(data.platform);
+  assert.ok(data.cpu.cores >= 1);
+  assert.equal(typeof data.cpu.activePct, 'number');
+  assert.equal(typeof data.cpu.idlePct, 'number');
+  assert.equal(typeof data.memory.total, 'number');
+  assert.ok(data.memory.total > 0);
+  assert.ok(Array.isArray(data.disk));
+  assert.ok(Array.isArray(data.topProcessesByRam));
+  assert.ok(Array.isArray(data.topProcessesByCpu));
+  if (data.topProcessesByCpu.length > 0) {
+    assert.ok(data.topProcessesByCpu[0].pid > 0);
+    assert.equal(typeof data.topProcessesByCpu[0].cpu, 'number');
+  }
+});
+
+test('CLI: dt top alias executes system resource monitor', () => {
+  const res = runDt('top');
+  assert.equal(res.exitCode, 0);
+  assert.ok(res.stdout.includes('SYSTEM RESOURCE MONITOR'));
+  assert.ok(res.stdout.includes('MEMORY UTILIZATION'));
+  assert.ok(res.stdout.includes('CPU CAPACITY & SYSTEM LOAD'));
+});
+
+test('CLI: dt sys disk returns disk storage breakdown', () => {
+  const res = runDt('sys disk');
+  assert.equal(res.exitCode, 0);
+  assert.ok(res.stdout.includes('DISK STORAGE UTILIZATION'));
+  assert.ok(res.stdout.includes('Usage Bar:'));
+});

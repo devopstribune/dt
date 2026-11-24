@@ -85,7 +85,35 @@ npm link
 
 All developer tools execute **100% offline in local memory** with zero telemetry, zero analytics tracking, and zero third-party dependencies.
 
-### 1. TLS / SSL Certificate Inspector (`dt cert` / `dt tool cert`)
+### 1. Real-Time Linux & System Resource Monitor (`dt sys` / `dt top` / `dt monitor`)
+Instant, color-coded resource dashboard for Linux servers and macOS workstations:
+- **Disk Storage:** Total, Utilized, and Remaining Free space with visual color bars (green > 30% free, yellow 15–30%, red < 15%) sorted from highest to lowest usage.
+- **Memory (RAM):** Real available memory accounting for Linux kernel buffers/caches (`/proc/meminfo`) and Darwin `vm_stat`.
+- **CPU Capacity & Load:** Model, cores, 1m/5m/15m load averages, active utilization %, and remaining idle headroom.
+- **Top 10 Processes by RAM:** Ranked high to low with PID, User, RAM %, RSS in MB/GB, and process names.
+- **Top 10 Processes by CPU:** Ranked high to low with PID, User, CPU %, and memory footprint.
+- **Reference Guide:** [Linux Diagnostic Commands for SREs](https://www.devopstribune.com/articles/linux-commands-for-devops-engineers/)
+
+```bash
+# Full real-time resource monitor:
+dt sys
+# Or aliases:
+dt top
+dt monitor
+
+# Filter specific subsystems:
+dt sys disk       # Disk partitions only
+dt sys mem        # Memory utilization only
+dt sys cpu        # CPU capacity & load only
+dt sys proc       # Top 10 RAM & CPU processes only
+
+# Output structured JSON for alert scripts:
+dt sys --json
+```
+
+---
+
+### 2. TLS / SSL Certificate Inspector (`dt cert` / `dt tool cert`)
 Inspect remote TLS certificates or local `.crt`/`.pem` certificate files with SNI support, expiry countdown, and cipher details.
 - **Web Counterpart:** [DevOps Tribune Developer Tools](https://www.devopstribune.com/tools/)
 

@@ -7,6 +7,7 @@ const handleNews = require('../lib/commands/news');
 const { handleArticles, handleSingleArticle } = require('../lib/commands/articles');
 const handleInterview = require('../lib/commands/interview');
 const { handleTools } = require('../lib/commands/tools');
+const { handleMonitor } = require('../lib/commands/monitor');
 const { handleStatus, handleHelp, handleVersion } = require('../lib/commands/status');
 const { maybeAutoUpdate, handleUpdateCommand } = require('../lib/updater');
 const fmt = require('../lib/formatter');
@@ -104,7 +105,38 @@ async function main() {
 
     case 'tool':
     case 'tools':
-      await handleTools(args.subCommand, args);
+      if (['sys', 'system', 'top', 'monitor', 'disk', 'df', 'mem', 'memory', 'cpu', 'proc', 'processes', 'ps'].includes((args.subCommand || '').toLowerCase())) {
+        await handleMonitor(args.subCommand, args);
+      } else {
+        await handleTools(args.subCommand, args);
+      }
+      break;
+
+    case 'sys':
+    case 'system':
+    case 'top':
+    case 'monitor':
+      await handleMonitor(args.subCommand, args);
+      break;
+
+    case 'disk':
+    case 'df':
+      await handleMonitor('disk', args);
+      break;
+
+    case 'mem':
+    case 'memory':
+      await handleMonitor('mem', args);
+      break;
+
+    case 'cpu':
+      await handleMonitor('cpu', args);
+      break;
+
+    case 'proc':
+    case 'processes':
+    case 'ps':
+      await handleMonitor('proc', args);
       break;
 
     case 'passgen':
