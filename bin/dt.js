@@ -8,6 +8,7 @@ const { handleArticles, handleSingleArticle } = require('../lib/commands/article
 const handleInterview = require('../lib/commands/interview');
 const { handleTools } = require('../lib/commands/tools');
 const { handleStatus, handleHelp, handleVersion } = require('../lib/commands/status');
+const { maybeAutoUpdate, handleUpdateCommand } = require('../lib/updater');
 const fmt = require('../lib/formatter');
 
 function parseArgs(rawArgs) {
@@ -19,7 +20,13 @@ function parseArgs(rawArgs) {
     category: '',
     tag: '',
     limit: null,
-    query: ''
+    query: '',
+    noUpdate: false,
+    update: false,
+    check: false,
+    enable: false,
+    disable: false,
+    status: false
   };
 
   const positional = [];
@@ -31,6 +38,18 @@ function parseArgs(rawArgs) {
       args.json = true;
     } else if (arg === '--no-color') {
       process.env.NO_COLOR = '1';
+    } else if (arg === '--no-update') {
+      args.noUpdate = true;
+    } else if (arg === '--update') {
+      args.update = true;
+    } else if (arg === '--check') {
+      args.check = true;
+    } else if (arg === '--enable') {
+      args.enable = true;
+    } else if (arg === '--disable') {
+      args.disable = true;
+    } else if (arg === '--status') {
+      args.status = true;
     } else if (arg === '-v' || arg === '--version') {
       args.command = 'version';
       return args;
@@ -59,6 +78,11 @@ function parseArgs(rawArgs) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+
+  // Automatically check & update on first daily run (unless explicitly disabled or outputting JSON)
+  if (!args.noUpdate && !args.json && args.command !== 'update' && args.command !== 'upgrade') {
+    await maybeAutoUpdate(args);
+  }
 
   switch (args.command.toLowerCase()) {
     case 'news':
@@ -129,6 +153,11 @@ async function main() {
     case 'status':
     case 'info':
       await handleStatus(args);
+      break;
+
+    case 'update':
+    case 'upgrade':
+      await handleUpdateCommand(args.subCommand, args);
       break;
 
     case 'version':

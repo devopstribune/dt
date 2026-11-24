@@ -313,6 +313,38 @@ dt status
 
 ---
 
+### Automatic Updates & Version Management (`dt update`)
+`dt` includes an intelligent, zero-dependency update mechanism designed for seamless continuous delivery:
+
+1. **Automatic Daily Check on First Run:**
+   The first time `dt` is invoked each day, it automatically checks whether updates have been deployed.
+   - **Git Repositories:** Pulls upstream commits (`git pull --ff-only origin main`) if remote changes exist.
+   - **NPM Global:** Updates to the latest registry release via `npm install -g @devopstribune/cli@latest`.
+   - **Homebrew Tap:** Upgrades formula via `brew upgrade devopstribune/tap/dt`.
+   - After updating, it immediately executes the command you requested with the new code in place.
+2. **Subsequent Invocations (0ms Overhead):**
+   Once verified for the day, subsequent runs bypass network checks entirely so commands execute with zero latency.
+3. **Manual Updates & Preferences:**
+   ```bash
+   # Check and apply updates immediately:
+   dt update
+
+   # Check for updates without applying:
+   dt update --check
+
+   # View current update status & installation method:
+   dt update --status
+
+   # Enable or disable daily auto-update check:
+   dt update --enable
+   dt update --disable
+
+   # Bypass update check for a single execution (ideal for air-gapped CI/CD):
+   dt <command> --no-update
+   ```
+
+---
+
 ## 🔒 Security & Supply Chain Philosophy
 
 1. **Zero Third-Party Dependencies:** `dt` contains **zero npm dependencies**. Auditing the complete codebase takes under 10 minutes.

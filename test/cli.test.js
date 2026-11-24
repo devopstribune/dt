@@ -21,7 +21,7 @@ function runDt(args = '') {
 test('CLI: version output', () => {
   const res = runDt('version');
   assert.equal(res.exitCode, 0);
-  assert.ok(res.stdout.includes('dt version 1.0.0'));
+  assert.ok(res.stdout.includes(`dt version ${require('../package.json').version}`));
 });
 
 test('CLI: help screen displays commands and options', () => {
@@ -166,7 +166,47 @@ test('CLI: dt status reports edge status', () => {
   const res = runDt('status --json');
   assert.equal(res.exitCode, 0);
   const data = JSON.parse(res.stdout);
-  assert.equal(data.cliVersion, '1.0.0');
+  assert.equal(data.cliVersion, require('../package.json').version);
   assert.equal(data.status, 'HEALTHY');
   assert.ok(data.catalogs.articles >= 32);
+});
+
+test('Updater: semver comparator correctly identifies newer releases', () => {
+  const updater = require('../lib/updater');
+  assert.ok(updater.isNewerVersion('1.2.0', '1.1.0'));
+  assert.ok(updater.isNewerVersion('2.0.0', '1.9.9'));
+  assert.ok(updater.isNewerVersion('1.1.1', '1.1.0'));
+  assert.ok(!updater.isNewerVersion('1.1.0', '1.1.0'));
+  assert.ok(!updater.isNewerVersion('1.0.9', '1.1.0'));
+  assert.ok(!updater.isNewerVersion('0.9.9', '1.0.0'));
+});
+
+test('CLI: dt update --status displays configuration and installation method', () => {
+  const res = runDt('update --status');
+  assert.equal(res.exitCode, 0);
+  assert.ok(res.stdout.includes('CLI UPDATE CONFIGURATION & STATUS'));
+  assert.ok(res.stdout.includes('Install Method:'));
+  assert.ok(res.stdout.includes('Auto-Update:'));
+});
+
+test('CLI: dt update --disable and --enable toggles daily auto-update preference', () => {
+  const resDisable = runDt('update --disable');
+  assert.equal(resDisable.exitCode, 0);
+  assert.ok(resDisable.stdout.includes('disabled'));
+
+  const resStatusDisabled = runDt('update --status');
+  assert.ok(resStatusDisabled.stdout.includes('DISABLED'));
+
+  const resEnable = runDt('update --enable');
+  assert.equal(resEnable.exitCode, 0);
+  assert.ok(resEnable.stdout.includes('enabled'));
+
+  const resStatusEnabled = runDt('update --status');
+  assert.ok(resStatusEnabled.stdout.includes('ENABLED'));
+});
+
+test('CLI: dt command supports --no-update flag', () => {
+  const res = runDt('passgen 12 1 --no-update');
+  assert.equal(res.exitCode, 0);
+  assert.ok(res.stdout.includes('RANDOM PASSWORD GENERATOR'));
 });
