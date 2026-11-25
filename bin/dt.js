@@ -3,7 +3,7 @@
 // Official DevOps Tribune CLI (dt)
 // https://www.devopstribune.com/
 
-const handleNews = require('../lib/commands/news');
+const { handleNews, handleTrending, handleArchive } = require('../lib/commands/news');
 const { handleArticles, handleSingleArticle } = require('../lib/commands/articles');
 const handleInterview = require('../lib/commands/interview');
 const { handleTools } = require('../lib/commands/tools');
@@ -88,6 +88,16 @@ async function main() {
   switch (args.command.toLowerCase()) {
     case 'news':
       await handleNews(args);
+      break;
+
+    case 'trending':
+    case 'repos':
+    case 'github':
+      await handleTrending(args);
+      break;
+
+    case 'archive':
+      await handleArchive(args.subCommand, args);
       break;
 
     case 'articles':

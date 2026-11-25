@@ -3,8 +3,32 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { execSync } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
 
 const DT_BIN = path.resolve(__dirname, '../bin/dt.js');
+
+const SAMPLE_CERT_PEM = `-----BEGIN CERTIFICATE-----
+MIIDNDCCAhygAwIBAgIUFkr16DNJr7f1JgDdE1EeQWnSxOQwDQYJKoZIhvcNAQEL
+BQAwOjEfMB0GA1UEAwwWdGVzdC5kZXZvcHN0cmlidW5lLmNvbTEXMBUGA1UECgwO
+RGV2T3BzIFRyaWJ1bmUwHhcNMjYxMTI0MDkyODA5WhcNMjcxMTI0MDkyODA5WjA6
+MR8wHQYDVQQDDBZ0ZXN0LmRldm9wc3RyaWJ1bmUuY29tMRcwFQYDVQQKDA5EZXZP
+cHMgVHJpYnVuZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAItX+M5J
+CHLuMCVOgc0vd31nLKaXFTh3knQ5mCtXFd30Mkgcep1uGaVMxiDThjK/gBIJO5Wz
+aA1+DAs6DloMF39evmofyPqge6nplUpfE4EIfUDRLGwq8p1UeSAUStCpOWB3ICkr
+XEJ7LOQ8K5dsk9E+UV1d77JonYnqGPe8JtBHwzWxmiLkvO0DPwfbZmNNx231O+B+
+vOU4fpUR2L2yyqz2vNr+3R58siakYKg5O81ulfhqMuxTLQlvsjjfxA11HGhB4X0D
+YxTXiM68FTRmkdCAGmpV8yzxZVv7muqaRpjowuCZvpEtRkrcWm7zmyRs256Plqxq
+3bRXEw1hrDi5OPcCAwEAAaMyMDAwHQYDVR0OBBYEFBDUHG81kKgWm4GsOrN/8Rmx
+/GRFMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAHL0YOCfjoQs
+Kk3cOChB6IYSRmjttTXfOm0OXK+EzVOEcH6OiJ0E3pRfckZE7IowhPCVTHx4BrZf
+Ur/I0BoTsHPIBa1t3I1Mq/RXIwobRWqO5+6+ZVsNJTvDsuAhVi/jysHv/B8N/OtU
+XnejdNU2OVPuBySEQmqUUXavxDZ5Yxvwebn4vJrAT4iuxfDBUDJSIajnYEaG2aHe
+n2L8Be4hKJk/0fOhEKXvYkrAhI1ZfbWFB26gf5r7Ve5ik7mcHAeTj3t2npXTQ3vh
+vhqJGKffbfEbrl8HpxJKOB5OkvSiE4z/RCav7mZM7nao9zf455ip8L8NbxFiEu8l
+rDOsKsBagEc=
+-----END CERTIFICATE-----
+`;
 
 function runDt(args = '') {
   try {
@@ -151,15 +175,22 @@ test('CLI: dt tool hash computes sha256 checksum', () => {
 });
 
 test('CLI: dt cert inspects certificate file', () => {
-  const fixturePath = path.resolve(__dirname, 'fixtures/sample-cert.pem');
-  const res = runDt(`cert "${fixturePath}" --json`);
-  assert.equal(res.exitCode, 0);
-  const data = JSON.parse(res.stdout);
-  assert.equal(data.source, 'file');
-  assert.ok(data.subject.includes('test.devopstribune.com'));
-  assert.ok(data.issuer.includes('DevOps Tribune'));
-  assert.ok(data.daysRemaining >= 360);
-  assert.equal(data.status, 'HEALTHY');
+  const tempCertPath = path.join(os.tmpdir(), `dt-test-cert-${Date.now()}.pem`);
+  try {
+    fs.writeFileSync(tempCertPath, SAMPLE_CERT_PEM, 'utf8');
+    const res = runDt(`cert "${tempCertPath}" --json`);
+    assert.equal(res.exitCode, 0);
+    const data = JSON.parse(res.stdout);
+    assert.equal(data.source, 'file');
+    assert.ok(data.subject.includes('test.devopstribune.com'));
+    assert.ok(data.issuer.includes('DevOps Tribune'));
+    assert.ok(data.daysRemaining >= 360);
+    assert.equal(data.status, 'HEALTHY');
+  } finally {
+    try {
+      if (fs.existsSync(tempCertPath)) fs.unlinkSync(tempCertPath);
+    } catch (_) {}
+  }
 });
 
 test('CLI: dt status reports edge status', () => {
@@ -252,4 +283,28 @@ test('CLI: dt sys disk returns disk storage breakdown', () => {
   assert.equal(res.exitCode, 0);
   assert.ok(res.stdout.includes('DISK STORAGE UTILIZATION'));
   assert.ok(res.stdout.includes('Usage Bar:'));
+});
+
+test('CLI: dt trending --json returns trending GitHub repositories', () => {
+  const res = runDt('trending --limit 3 --json');
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.equal(typeof data.count, 'number');
+  assert.ok(data.count <= 3);
+  assert.ok(Array.isArray(data.trendingRepos));
+  if (data.trendingRepos.length > 0) {
+    assert.ok(data.trendingRepos[0].repo);
+    assert.ok(data.trendingRepos[0].url.includes('github.com/'));
+  }
+});
+
+test('CLI: dt archive --json lists daily archive snapshots', () => {
+  const res = runDt('archive --json');
+  assert.equal(res.exitCode, 0);
+  const data = JSON.parse(res.stdout);
+  assert.equal(typeof data.totalDays, 'number');
+  assert.ok(Array.isArray(data.days));
+  if (data.days.length > 0) {
+    assert.ok(/^\d{4}-\d{2}-\d{2}$/.test(data.days[0].date));
+  }
 });
